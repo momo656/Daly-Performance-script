@@ -1,55 +1,57 @@
+//npm i github:pedroslopez/whatsapp-web.js && npm i wwebjs-mongo --> for remote auth 
+
+const qr = require('qrcode-terminal');
+const { Client, RemoteAuth } = require('whatsapp-web.js');
+const { MongoStore } = require('wwebjs-mongo');
+const mongoose = require('mongoose');
 const express = require("express");
-const { Client, RemoteAuth } = require("whatsapp-web.js");
 const QRCode = require("qrcode");
 const path = require("path");
 const { GoogleSpreadsheet } = require("google-spreadsheet");
 const creds = require("./client_secret.json");
 
-const { MongoStore } = require('wwebjs-mongo');
-const mongoose = require('mongoose');
+let client;
+
+
 
 const cron = require("node-cron");
 //http://localhost:3000/qr.png
 
 const app = express();
-let client;
+
 let task = cron.schedule("*/10 * * * *", () => {
   //https://crontab.guru/
   getDataAndSendToWhatsApp();
 });
 
 app.use(express.static("public"));
-
-
-const init = async () => {
-  await mongoose.connect(process.env.MONGODB_URI);
-  const store = new MongoStore({ mongoose: mongoose });
-  client = new Client({
-    authStrategy: new RemoteAuth({
-      store: store,
-      backupSyncIntervalMs: 300000
-    })
-  });
- await client.initialize();
-  client.on("qr", (qr) => {
-    console.log(qr)
-    QRCode.toFile(path.join(__dirname, "public") + "/qr.png", qr, {
-      errorCorrectionLevel: "L",
-      scale: 10,
-    });
+mongoose.connect("mongodb+srv://momo:XQAWBC3va2PDt1ai@cluster0.afwrizd.mongodb.net/?retryWrites=true&w=majority").then(() => {
   
-  });
-}
+    const store = new MongoStore({ mongoose: mongoose });
+     client = new Client({
+        authStrategy: new RemoteAuth({
+            store: store,
+            backupSyncIntervalMs: 300000
+        }),
+        puppeteer: {
+            args: [
+                '--no-sandbox',
+            ],
+        },
+    });
 
+    client.on("qr", (qr) => {
+      console.log(qr)
+      QRCode.toFile(path.join(__dirname, "public") + "/qr.png", qr, {
+        errorCorrectionLevel: "L",
+        scale: 10,
+      });
+    
+    });
 
-// client.on("message", (msg) => {
-// // msg.getChat().then((chat) => {
-// //   console.log(msg.id);
-// //   console.log(msg.id.remote);
-// //   console.log(chat.isGroup);
-// // });
-// console.log(msg)
-// });
+    client.initialize();
+});
+
 
 
 app.listen(3000);
@@ -84,7 +86,6 @@ const getDataAndSendToWhatsApp = async () => {
   let DphBetween = DphBetweenRow[yesterday];
   let DphAll = DphAllRow[yesterday];
 
-  console.log();
   client.sendMessage(
     "120363093617674901@g.us",
     `logistics delivery time performance\n${yesterday}\nTotalShifted: ${TotalShifted}\nLate: ${Late}\nDelivery time: ${deliveryTime} min\nMorning: ${morning} min\nBetween: ${between} min\nNight: ${night} min\nHourly AVG Order Morning: ${DphMorning}\nHourly AVG Order Between: ${DphBetween}\nHourly AVG Order per DA : ${DphAll}\n `
@@ -92,7 +93,6 @@ const getDataAndSendToWhatsApp = async () => {
 
 
 };
-init();
 const subtractDays = (date, days) => {
   date.setDate(date.getDate() - days);
 
