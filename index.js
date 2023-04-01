@@ -19,7 +19,7 @@ const cron = require("node-cron");
 
 const app = express();
 
-let task = cron.schedule("*/10 * * * *", () => {
+let task = cron.schedule("*/2 * * * *", () => {
   //https://crontab.guru/
   getDataAndSendToWhatsApp();
 });
