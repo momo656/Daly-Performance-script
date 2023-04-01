@@ -5,14 +5,14 @@ const path = require("path");
 const { GoogleSpreadsheet } = require("google-spreadsheet");
 const creds = require("./client_secret.json");
 
-const app = express();
-let client ;
 const { MongoStore } = require('wwebjs-mongo');
 const mongoose = require('mongoose');
 
 const cron = require("node-cron");
 //http://localhost:3000/qr.png
 
+const app = express();
+let client;
 let task = cron.schedule("*/10 * * * *", () => {
   //https://crontab.guru/
   getDataAndSendToWhatsApp();
@@ -20,25 +20,27 @@ let task = cron.schedule("*/10 * * * *", () => {
 
 app.use(express.static("public"));
 
-client.on("qr", (qr) => {
-  console.log(qr)
-  QRCode.toFile(path.join(__dirname, "public") + "/qr.png", qr, {
-    errorCorrectionLevel: "L",
-    scale: 10,
-  });
 
-});
-mongoose.connect(process.env.MONGODB_URI).then(() => {
+const init = async () => {
+  await mongoose.connect(process.env.MONGODB_URI);
   const store = new MongoStore({ mongoose: mongoose });
-   client = new Client({
-      authStrategy: new RemoteAuth({
-          store: store,
-          backupSyncIntervalMs: 300000
-      })
+  client = new Client({
+    authStrategy: new RemoteAuth({
+      store: store,
+      backupSyncIntervalMs: 300000
+    })
   });
+ await client.initialize();
+  client.on("qr", (qr) => {
+    console.log(qr)
+    QRCode.toFile(path.join(__dirname, "public") + "/qr.png", qr, {
+      errorCorrectionLevel: "L",
+      scale: 10,
+    });
+  
+  });
+}
 
-  client.initialize();
-});
 
 // client.on("message", (msg) => {
 // // msg.getChat().then((chat) => {
@@ -63,7 +65,7 @@ const getDataAndSendToWhatsApp = async () => {
   let rows = await sheet.getRows();
   const yesterday = subtractDays(new Date(), 1).toLocaleDateString();
   let TotalShiftedRow = rows[14];
-  let LateRow = rows[22]; 
+  let LateRow = rows[22];
   let deliveryTimeRow = rows[24];
   let morningRow = rows[26];
   let betweenRow = rows[27];
@@ -73,28 +75,28 @@ const getDataAndSendToWhatsApp = async () => {
   let DphAllRow = rows[46];
 
   let TotalShifted = TotalShiftedRow[yesterday];
-  let Late = LateRow[yesterday];    
+  let Late = LateRow[yesterday];
   let deliveryTime = deliveryTimeRow[yesterday];
   let morning = morningRow[yesterday];
   let between = betweenRow[yesterday];
   let night = nightRow[yesterday];
   let DphMorning = DphMorningRow[yesterday];
-  let DphBetween = DphBetweenRow [yesterday];
+  let DphBetween = DphBetweenRow[yesterday];
   let DphAll = DphAllRow[yesterday];
- 
-    console.log();
-    client.sendMessage(
-      "120363093617674901@g.us",
-      `logistics delivery time performance\n${yesterday}\nTotalShifted: ${TotalShifted}\nLate: ${Late}\nDelivery time: ${deliveryTime} min\nMorning: ${morning} min\nBetween: ${between} min\nNight: ${night} min\nHourly AVG Order Morning: ${DphMorning}\nHourly AVG Order Between: ${DphBetween}\nHourly AVG Order per DA : ${DphAll}\n `
-    );
-  
- 
-};
 
+  console.log();
+  client.sendMessage(
+    "120363093617674901@g.us",
+    `logistics delivery time performance\n${yesterday}\nTotalShifted: ${TotalShifted}\nLate: ${Late}\nDelivery time: ${deliveryTime} min\nMorning: ${morning} min\nBetween: ${between} min\nNight: ${night} min\nHourly AVG Order Morning: ${DphMorning}\nHourly AVG Order Between: ${DphBetween}\nHourly AVG Order per DA : ${DphAll}\n `
+  );
+
+
+};
+init();
 const subtractDays = (date, days) => {
   date.setDate(date.getDate() - days);
 
   return date;
-  
-  
+
+
 };
