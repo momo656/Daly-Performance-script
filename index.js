@@ -6,7 +6,7 @@ const { GoogleSpreadsheet } = require("google-spreadsheet");
 const creds = require("./client_secret.json");
 
 const app = express();
-const client = new Client({ authStrategy: new LocalAuth() });
+let client ;
 const { MongoStore } = require('wwebjs-mongo');
 const mongoose = require('mongoose');
 
@@ -30,7 +30,7 @@ client.on("qr", (qr) => {
 });
 mongoose.connect(process.env.MONGODB_URI).then(() => {
   const store = new MongoStore({ mongoose: mongoose });
-  const client = new Client({
+   client = new Client({
       authStrategy: new RemoteAuth({
           store: store,
           backupSyncIntervalMs: 300000
