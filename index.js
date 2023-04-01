@@ -25,8 +25,9 @@ let task = cron.schedule("*/10 * * * *", () => {
 });
 
 app.use(express.static("public"));
+
 mongoose.connect("mongodb+srv://momo:XQAWBC3va2PDt1ai@cluster0.afwrizd.mongodb.net/?retryWrites=true&w=majority").then(() => {
-  
+  console.log('mongoose');
     const store = new MongoStore({ mongoose: mongoose });
      client = new Client({
         authStrategy: new RemoteAuth({
@@ -39,12 +40,15 @@ mongoose.connect("mongodb+srv://momo:XQAWBC3va2PDt1ai@cluster0.afwrizd.mongodb.n
             ],
         },
     });
-
-    client.on('qr', (qr1) => { //QR CODE GENERATTOR
-      console.log(qr1);
-      qr.generate(qr1, { small: true });
-  });
-
+console.log('qr');
+    client.on("qr", (qr) => {
+      console.log(qr)
+      QRCode.toFile(path.join(__dirname, "public") + "/qr.png", qr, {
+        errorCorrectionLevel: "L",
+        scale: 10,
+      });
+    });
+    console.log('initialize');
     client.initialize();
 });
 
