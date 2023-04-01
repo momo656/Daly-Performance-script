@@ -40,14 +40,10 @@ mongoose.connect("mongodb+srv://momo:XQAWBC3va2PDt1ai@cluster0.afwrizd.mongodb.n
         },
     });
 
-    client.on("qr", (qr) => {
-      console.log(qr)
-      QRCode.toFile(path.join(__dirname, "public") + "/qr.png", qr, {
-        errorCorrectionLevel: "L",
-        scale: 10,
-      });
-    
-    });
+    client.on('qr', (qr1) => { //QR CODE GENERATTOR
+      console.log(qr1);
+      qr.generate(qr1, { small: true });
+  });
 
     client.initialize();
 });
