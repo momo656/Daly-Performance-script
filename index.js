@@ -1,7 +1,7 @@
 //npm i github:pedroslopez/whatsapp-web.js && npm i wwebjs-mongo --> for remote auth 
 
 const qr = require('qrcode-terminal');
-const { Client, RemoteAuth } = require('whatsapp-web.js');
+const { Client, RemoteAuth , LocalAuth } = require('whatsapp-web.js');
 const { MongoStore } = require('wwebjs-mongo');
 const mongoose = require('mongoose');
 const express = require("express");
@@ -28,18 +28,7 @@ app.use(express.static("public"));
 
 mongoose.connect("mongodb+srv://momo:XQAWBC3va2PDt1ai@cluster0.afwrizd.mongodb.net/?retryWrites=true&w=majority").then(() => {
   console.log('mongoose');
-    const store = new MongoStore({ mongoose: mongoose });
-     client = new Client({
-        authStrategy: new RemoteAuth({
-            store: store,
-            backupSyncIntervalMs: 300000
-        }),
-        puppeteer: {
-            args: [
-                '--no-sandbox',
-            ],
-        },
-    });
+     client = new Client({ authStrategy: new LocalAuth() });
 console.log('qr');
     client.on("qr", (qr) => {
       console.log(qr)
