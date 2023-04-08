@@ -19,7 +19,7 @@ const cron = require("node-cron");
 
 const app = express();
 
-let task = cron.schedule("*/2 * * * *", () => {
+let task = cron.schedule("0 11 * * *", () => {
   //https://crontab.guru/
   getDataAndSendToWhatsApp();
 });
@@ -76,7 +76,7 @@ const getDataAndSendToWhatsApp = async () => {
   let DphAll = DphAllRow[yesterday];
 
   client.sendMessage(
-    "120363093617674901@g.us",
+    "120363039523374703@g.us",
     `logistics delivery time performance\n${yesterday}\nTotalShifted: ${TotalShifted}\nLate: ${Late}\nDelivery time: ${deliveryTime} min\nMorning: ${morning} min\nBetween: ${between} min\nNight: ${night} min\nHourly AVG Order Morning: ${DphMorning}\nHourly AVG Order Between: ${DphBetween}\nHourly AVG Order per DA : ${DphAll}\n `
   );
 
